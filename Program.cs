@@ -1,19 +1,66 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-public class AppDomainUnloadedException
-{
-    public enum Kelurahan {Batununggal, Kujangsari, Mengger, Wates, Cijaura, Jatisari, Margasari, Sekejari, Kebonwaru, Maleer, Samoja }
-    
-    public static int getKodePos(Kelurahan kelurahan)
-    {
-        int[] kode = { 40266, 40287, 40267, 40256, 40287, 40286, 40286, 40272, 40274, 40273 };
-        return kode[(int)kelurahan];
-    }
+using System.Security.Cryptography.X509Certificates;
 
-    public static void Main(string[] args)
+
+public class DoorMachine
+{
+    public enum DoorState { Terkunci, Terbuka };
+    public enum Trigger { KunciPintu, BukaPintu };
+
+    class Door
     {
-        Kelurahan kelurahan = Kelurahan.Cijaura;
-        int kodepos = getKodePos(kelurahan);
-        Console.WriteLine("Kelurahan " + kelurahan + " kode pos 0" + kodepos);
+
+        public DoorState currentState = DoorState.Terkunci;
+
+        public class Transition
+        {
+            public DoorState stateAwal;
+            public DoorState stateAkhir;
+            public Trigger trigger;
+
+
+            public Transition(DoorState stateAwal, DoorState stateAkhir, Trigger trigger)
+            {
+                this.stateAwal = stateAwal;
+                this.stateAkhir = stateAkhir;
+                this.trigger = trigger;
+            }
+
+            Transition[] transitions =
+            {
+                new Transition(DoorState.Terkunci,DoorState.Terkunci,Trigger.KunciPintu),
+                new Transition(DoorState.Terkunci,DoorState.Terbuka,Trigger.BukaPintu),
+                new Transition(DoorState.Terbuka,DoorState.Terbuka,Trigger.BukaPintu),
+                new Transition(DoorState.Terbuka,DoorState.Terkunci,Trigger.KunciPintu)
+            };
+
+            private DoorState GetStateBerikutnya(DoorState stateAwal, Trigger trigger)
+            {
+                DoorState stateAkhir = stateAwal;
+                for (int i = 0; i < transitions.Length; i++)
+                {
+                    Transition perubahan = transitions[i];
+                    if (stateAwal == perubahan.stateAwal && trigger == perubahan.trigger)
+                    {
+                        stateAkhir = perubahan.stateAkhir;
+                    }
+                }
+                return stateAkhir;
+            }
+            public void ActivateTrigger(Trigger trigger, DoorState currentState)
+            {
+                currentState = GetStateBerikutnya(currentState, trigger);
+                Console.WriteLine("State sekarang adalah:" + currentState);
+            }
+            public static void Main(string[] args)
+            {
+                Door objDoor = new Door();
+                Console.WriteLine(objDoor.currentState);
+            }
+
+        }
+
     }
 }
+
